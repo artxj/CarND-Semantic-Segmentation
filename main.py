@@ -133,6 +133,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param save_path: Path to save trained model
     """
     # Implement function
+    print('Training the model')
     best_loss = 1e+4
     for epoch_num in range(epochs):
         loss = 0.0
@@ -142,7 +143,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                 input_image: image, correct_label: label})
         print('Epoch {} loss = {:.3f}'.format(epoch_num, loss))
         if saver is not None and loss < best_loss:
+            print('Saving better model...')
             save_model(sess, saver, save_path)
+            best_loss = loss
 
 tests.test_train_nn(train_nn)
 
