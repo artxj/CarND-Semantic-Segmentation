@@ -223,7 +223,7 @@ def run():
             restore_model(sess, saver, save_path)
         else:
             train_nn(sess, epochs, batch_size, get_batches_fn,
-                train_op, cross_entropy_loss, image_input,
+                train_op, cross_entropy_loss, input_image,
                 correct_label, keep_prob, learning_rate,
                 saver, save_path)
 
