@@ -131,10 +131,11 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     """
     # TODO: Implement function
     for epoch_num in range(epochs):
+        loss = 0.0
         for image, label in get_batches_fn(batch_size):
             _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={keep_prob: 0.8, learning_rate: 1e-3,
                 input_image: image, correct_label: label})
-            print('Epoch {} loss = {:.3f}'.format(epoch_num, loss))
+        print('Epoch {} loss = {:.3f}'.format(epoch_num, loss))
     if saver is not None:
         save_model(sess, saver, save_path)
 
@@ -177,7 +178,7 @@ def run():
     num_classes = 2
     image_shape = (160, 576)
     epochs = 10
-    batch_size = 32
+    batch_size = 8
     save_path = './model/model.ckpt'
     data_dir = './data'
     runs_dir = './runs'
