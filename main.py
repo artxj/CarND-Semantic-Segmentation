@@ -193,7 +193,7 @@ def run():
     args = parse_args(save_path, epochs, batch_size)
     epochs = args.epochs
     batch_size = args.batch_size
-    save_path = args.save_path
+    save_path = args.model_path
     load_model = args.load
 
     with tf.Session() as sess:
