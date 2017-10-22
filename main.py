@@ -197,8 +197,6 @@ def run():
     load_model = args.load
 
     with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
         # Create function to get batches
