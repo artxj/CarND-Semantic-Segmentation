@@ -61,11 +61,15 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     layer_up1 = tf.layers.conv2d_transpose(layer_conv1x1, num_classes, 4, strides=(2, 2), padding='same',
         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer_up1')
-    layer_up1 = tf.add(layer_up1, vgg_layer4_out)
+    vgg_layer4_out_conv1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same',
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='vgg_layer4_out_conv1x1')
+    layer_up1 = tf.add(layer_up1, vgg_layer4_out_conv1x1)
 
     layer_up2 = tf.layers.conv2d_transpose(layer_up1, num_classes, 4, strides=(2, 2), padding='same',
         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer_up2')
-    layer_up2 = tf.add(layer_up2, vgg_layer3_out)
+    vgg_layer3_out_conv1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same',
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='vgg_layer3_out_conv1x1')
+    layer_up2 = tf.add(layer_up2, vgg_layer3_out_conv1x1)
 
     layer_up3 = tf.layers.conv2d_transpose(layer_up2, num_classes, 16, strides=(8, 8), padding='same',
         kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer_up3')
@@ -84,7 +88,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     """
     # TODO: Implement function
     logits = tf.reshape(nn_last_layer, (-1, num_classes))
-    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, correct_label))
+    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=correct_label))
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
     train_op = optimizer.minimize(cross_entropy_loss)
     return logits, train_op, cross_entropy_loss
@@ -109,7 +113,7 @@ def restore_model(sess, saver, save_path):
     saver.restore(sess, save_path)
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
-             correct_label, keep_prob, learning_rate, saver, save_path):
+             correct_label, keep_prob, learning_rate, saver=None, save_path=None):
     """
     Train neural network and print out the loss during training.
     :param sess: TF Session
@@ -130,8 +134,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         for image, label in get_batches_fn(batch_size):
             _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={keep_prob: 0.8, learning_rate: 1e-3,
                 input_image: image, correct_label: label})
-            print('Epoch {} loss = {}'.format(epoch_num, loss))
-    save_model(sess, saver, save_path)
+            print('Epoch {} loss = {:.3f}'.format(epoch_num, loss))
+    if saver is not None:
+        save_model(sess, saver, save_path)
 
 tests.test_train_nn(train_nn)
 
