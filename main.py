@@ -197,8 +197,6 @@ def run():
     load_model = args.load
 
     with tf.Session() as sess:
-        saver = tf.train.Saver()
-
         sess.run(tf.global_variables_initializer())
 
         # Path to vgg model
@@ -217,6 +215,8 @@ def run():
         input_image, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
         nn_output = layers(layer3_out, layer4_out, layer7_out, num_classes)
         logits, train_op, cross_entropy_loss = optimize(nn_output, correct_label, learning_rate, num_classes)
+
+        saver = tf.train.Saver()
 
         # TODO: Train NN using the train_nn function
         if load_model:
