@@ -190,8 +190,6 @@ def run():
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
-    saver = tf.train.Saver()
-
     args = parse_args(save_path, epochs, batch_size)
     epochs = args.epochs
     batch_size = args.batch_size
@@ -199,6 +197,8 @@ def run():
     load_model = args.load
 
     with tf.Session() as sess:
+        saver = tf.train.Saver()
+
         sess.run(tf.global_variables_initializer())
 
         # Path to vgg model
