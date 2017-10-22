@@ -57,22 +57,34 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     """
     # Implement function
     layer_conv1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer_conv1x1')
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
+        name='layer_conv1x1')
 
     layer_up1 = tf.layers.conv2d_transpose(layer_conv1x1, num_classes, 4, strides=(2, 2), padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer_up1')
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
+        name='layer_up1')
     vgg_layer4_out_conv1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='vgg_layer4_out_conv1x1')
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
+        name='vgg_layer4_out_conv1x1')
     layer_up1 = tf.add(layer_up1, vgg_layer4_out_conv1x1)
 
     layer_up2 = tf.layers.conv2d_transpose(layer_up1, num_classes, 4, strides=(2, 2), padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer_up2')
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
+        name='layer_up2')
     vgg_layer3_out_conv1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='vgg_layer3_out_conv1x1')
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
+        name='vgg_layer3_out_conv1x1')
     layer_up2 = tf.add(layer_up2, vgg_layer3_out_conv1x1)
 
     layer_up3 = tf.layers.conv2d_transpose(layer_up2, num_classes, 16, strides=(8, 8), padding='same',
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer_up3')
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3),
+        kernel_initializer=tf.truncated_normal_initializer(stddev=0.01),
+        name='layer_up3')
     return layer_up3
 tests.test_layers(layers)
 
@@ -134,7 +146,6 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     """
     # Implement function
     print('Training the model')
-    best_loss = 1e+4
     for epoch_num in range(epochs):
         loss = 1e+4
         for image, label in get_batches_fn(batch_size):
@@ -142,10 +153,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                 learning_rate: learning_rate_value,
                 input_image: image, correct_label: label})
         print('Epoch {} loss = {:.3f}'.format(epoch_num, loss))
-        if saver is not None and loss < best_loss:
-            print('Saving better model...')
-            save_model(sess, saver, save_path)
-            best_loss = loss
+    if saver is not None:
+        print('Saving better model...')
+        save_model(sess, saver, save_path)
 
 tests.test_train_nn(train_nn)
 
@@ -195,16 +205,12 @@ def parse_args(save_path, epochs, batch_size, learning_rate, keep_prob):
     return parser.parse_args()
 
 def run():
-    """
-    After first 50 runs, learning rate was decreased to 1e-4 and keep_prob to 0.5
-    and additional 10 runs were performed
-    """
     num_classes = 2
     image_shape = (160, 576)
-    epochs = 50
-    batch_size = 8
-    learning_rate_value = 1e-3
-    keep_prob_value = 0.8
+    epochs = 25
+    batch_size = 4
+    learning_rate_value = 1e-5
+    keep_prob_value = 0.9
     save_path = './model/model.ckpt'
     data_dir = './data'
     runs_dir = './runs'
