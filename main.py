@@ -115,7 +115,8 @@ def restore_model(sess, saver, save_path):
     print('Model restored from {}'.format(save_path))
 
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
-             correct_label, keep_prob, learning_rate, saver=None, save_path=None):
+             correct_label, keep_prob, learning_rate, saver=None, save_path=None, keep_prob_value=0.8,
+             learning_rate_value=1e-3):
     """
     Train neural network and print out the loss during training.
     :param sess: TF Session
@@ -131,19 +132,21 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param saver: TF Saver
     :param save_path: Path to save trained model
     """
-    # TODO: Implement function
+    # Implement function
+    best_loss = 1e+4
     for epoch_num in range(epochs):
         loss = 0.0
         for image, label in get_batches_fn(batch_size):
-            _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={keep_prob: 0.8, learning_rate: 1e-3,
+            _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={keep_prob: keep_prob_value,
+                learning_rate: learning_rate_value,
                 input_image: image, correct_label: label})
         print('Epoch {} loss = {:.3f}'.format(epoch_num, loss))
-    if saver is not None:
-        save_model(sess, saver, save_path)
+        if saver is not None and loss < best_loss:
+            save_model(sess, saver, save_path)
 
 tests.test_train_nn(train_nn)
 
-def parse_args(save_path, epochs, batch_size):
+def parse_args(save_path, epochs, batch_size, learning_rate, keep_prob):
     """
     Parses console arguments.
     :param save_path: Path a model to be saved (or loaded from)
@@ -174,6 +177,18 @@ def parse_args(save_path, epochs, batch_size):
         default=batch_size,
         help='Batch size.'
     )
+    parser.add_argument(
+        '--learning_rate',
+        type=float,
+        default=learning_rate,
+        help='Learning rate.'
+    )
+    parser.add_argument(
+        '--keep_prob',
+        type=float,
+        default=keep_prob,
+        help='Keep probability.'
+    )
     return parser.parse_args()
 
 def run():
@@ -181,6 +196,8 @@ def run():
     image_shape = (160, 576)
     epochs = 10
     batch_size = 8
+    learning_rate_value = 1e-3
+    keep_prob_value = 0.8
     save_path = './model/model.ckpt'
     data_dir = './data'
     runs_dir = './runs'
@@ -193,11 +210,13 @@ def run():
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
-    args = parse_args(save_path, epochs, batch_size)
+    args = parse_args(save_path, epochs, batch_size, learning_rate_value, keep_prob_value)
     epochs = args.epochs
     batch_size = args.batch_size
     save_path = args.model_path
     load_model = args.load
+    keep_prob_value = args.keep_prob
+    learning_rate_value = args.learning_rate
 
     with tf.Session() as sess:
         # Path to vgg model
@@ -228,7 +247,8 @@ def run():
             train_nn(sess, epochs, batch_size, get_batches_fn,
                 train_op, cross_entropy_loss, input_image,
                 correct_label, keep_prob, learning_rate,
-                saver, save_path)
+                saver=saver, save_path=save_path,
+                learning_rate_value=learning_rate_value, keep_prob_value=keep_prob_value)
 
         # Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
