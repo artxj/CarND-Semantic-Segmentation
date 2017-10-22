@@ -136,7 +136,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     print('Training the model')
     best_loss = 1e+4
     for epoch_num in range(epochs):
-        loss = 0.0
+        loss = 1e+4
         for image, label in get_batches_fn(batch_size):
             _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={keep_prob: keep_prob_value,
                 learning_rate: learning_rate_value,
@@ -195,9 +195,13 @@ def parse_args(save_path, epochs, batch_size, learning_rate, keep_prob):
     return parser.parse_args()
 
 def run():
+    """
+    After first 50 runs, learning rate was decreased to 1e-4 and keep_prob to 0.5
+    and additional 10 runs were performed
+    """
     num_classes = 2
     image_shape = (160, 576)
-    epochs = 10
+    epochs = 50
     batch_size = 8
     learning_rate_value = 1e-3
     keep_prob_value = 0.8
