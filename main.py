@@ -215,6 +215,7 @@ def run():
         logits, train_op, cross_entropy_loss = optimize(nn_output, correct_label, learning_rate, num_classes)
 
         saver = tf.train.Saver()
+        sess.run(tf.global_variables_initializer())
 
         # TODO: Train NN using the train_nn function
         if load_model:
